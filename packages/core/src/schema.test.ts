@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
-import { createEmptySnapshot } from './index';
+import { createEmptySnapshot, isHudEvent } from './index';
 
 describe('createEmptySnapshot', () => {
   it('creates a stable empty HUD snapshot', () => {
@@ -62,5 +62,15 @@ describe('createEmptySnapshot', () => {
     expect(packageJson.scripts?.build).toBe('rm -rf dist && tsc -p tsconfig.json');
     expect(packageJson.scripts?.prepack).toBe('npm run build');
     expect(packageJson.scripts?.test).toBe('vitest run');
+  });
+
+  it('rejects normalized-but-invalid iso timestamps in events', () => {
+    expect(
+      isHudEvent({
+        type: 'tool.start',
+        toolName: 'functions.exec_command',
+        at: '2026-02-30T00:00:00.000Z'
+      })
+    ).toBe(false);
   });
 });
