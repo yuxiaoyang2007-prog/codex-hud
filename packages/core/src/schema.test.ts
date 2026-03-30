@@ -1,15 +1,44 @@
 import { describe, expect, it } from 'vitest';
-import { createEmptySnapshot } from './schema';
+import { createEmptySnapshot } from './index';
 
 describe('createEmptySnapshot', () => {
   it('creates a stable empty HUD snapshot', () => {
-    const snapshot = createEmptySnapshot('session-123');
+    expect(createEmptySnapshot('session-123')).toEqual({
+      session: {
+        id: 'session-123',
+        model: null,
+        reasoningEffort: null,
+        startedAt: null,
+        lastUpdatedAt: null
+      },
+      status: {
+        phase: 'idle',
+        stale: false
+      },
+      tool: {
+        activeName: null,
+        startedAt: null,
+        elapsedMs: 0
+      },
+      plan: {
+        currentStep: null,
+        completedSteps: 0,
+        totalSteps: 0
+      },
+      subagents: {
+        active: 0,
+        lastEvent: null
+      },
+      warnings: []
+    });
+  });
 
-    expect(snapshot.session.id).toBe('session-123');
-    expect(snapshot.status.phase).toBe('idle');
-    expect(snapshot.plan.completedSteps).toBe(0);
-    expect(snapshot.plan.totalSteps).toBe(0);
-    expect(snapshot.subagents.active).toBe(0);
-    expect(snapshot.warnings).toEqual([]);
+  it('returns a fresh warnings array for each snapshot', () => {
+    const first = createEmptySnapshot('session-123');
+    const second = createEmptySnapshot('session-456');
+
+    first.warnings.push('warning');
+
+    expect(second.warnings).toEqual([]);
   });
 });
