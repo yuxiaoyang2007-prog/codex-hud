@@ -9,12 +9,19 @@ function isPlanItem(value: unknown): value is CodexPlanItem {
   return typeof value === 'object' && value !== null;
 }
 
-export function parseCodexSessionLines(lines: string[]): HudEvent[] {
-  const events: HudEvent[] = [];
-  let activeAgents = 0;
-
-  for (const line of lines) {
-    const record = JSON.parse(line) as {
+function parseSessionLine(line: string):
+  | {
+      timestamp?: unknown;
+      payload?: {
+        name?: unknown;
+        arguments?: {
+          plan?: unknown;
+        };
+      };
+    }
+  | null {
+  try {
+    return JSON.parse(line) as {
       timestamp?: unknown;
       payload?: {
         name?: unknown;
@@ -23,6 +30,20 @@ export function parseCodexSessionLines(lines: string[]): HudEvent[] {
         };
       };
     };
+  } catch {
+    return null;
+  }
+}
+
+export function parseCodexSessionLines(lines: string[]): HudEvent[] {
+  const events: HudEvent[] = [];
+  let activeAgents = 0;
+
+  for (const line of lines) {
+    const record = parseSessionLine(line);
+    if (record == null) {
+      continue;
+    }
 
     const name = record?.payload?.name;
     const args = record?.payload?.arguments;
