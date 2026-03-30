@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import { createEmptySnapshot } from './index';
 
@@ -40,5 +41,26 @@ describe('createEmptySnapshot', () => {
     first.warnings.push('warning');
 
     expect(second.warnings).toEqual([]);
+  });
+
+  it('uses the dist-only package manifest for builds and packing', async () => {
+    const packageJson = JSON.parse(
+      await readFile(new URL('../package.json', import.meta.url), 'utf8')
+    ) as {
+      exports?: { '.': { import?: string; types?: string } };
+      files?: string[];
+      scripts?: Record<string, string>;
+    };
+
+    expect(packageJson.exports).toEqual({
+      '.': {
+        types: './dist/index.d.ts',
+        import: './dist/index.js'
+      }
+    });
+    expect(packageJson.files).toEqual(['dist']);
+    expect(packageJson.scripts?.build).toBe('rm -rf dist && tsc -p tsconfig.json');
+    expect(packageJson.scripts?.prepack).toBe('npm run build');
+    expect(packageJson.scripts?.test).toBe('vitest run');
   });
 });
