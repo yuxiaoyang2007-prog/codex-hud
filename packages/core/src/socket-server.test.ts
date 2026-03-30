@@ -44,7 +44,7 @@ describe('createHudSocketServer', () => {
   it('ignores malformed json and unknown event shapes while preserving valid updates', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'codex-hud-socket-'));
     const snapshotPath = join(directory, 'snapshot.json');
-    const server = createHudSocketServer(join(directory, 'hud.sock'), snapshotPath);
+    const server = createHudSocketServer(snapshotPath);
     const connection = attachConnection(server);
 
     connection.emit('data', 'not json\n');
@@ -97,7 +97,7 @@ describe('createHudSocketServer', () => {
     );
 
     const directory = await mkdtemp(join(tmpdir(), 'codex-hud-socket-'));
-    const server = createHudSocketServer(join(directory, 'hud.sock'), join(directory, 'snapshot.json'), {
+    const server = createHudSocketServer(join(directory, 'snapshot.json'), {
       writeSnapshot
     });
     const connection = attachConnection(server);
@@ -128,6 +128,53 @@ describe('createHudSocketServer', () => {
 
     await vi.waitFor(() => {
       expect(persistedWrites).toEqual(['2026-03-30T10:00:00.000Z', '2026-03-30T10:00:01.000Z']);
+    });
+  });
+
+  it('keeps the write queue alive after a failed persistence attempt', async () => {
+    const failedWrite = Promise.withResolvers<void>();
+    const persistedWrites: string[] = [];
+    const writeSnapshot = vi
+      .fn<
+        (snapshotPath: string, snapshot: { session: { lastUpdatedAt: string | null } }) => Promise<void>
+      >()
+      .mockImplementationOnce(async () => {
+        await failedWrite.promise;
+        throw new Error('disk full');
+      })
+      .mockImplementationOnce(async (_snapshotPath, snapshot) => {
+        persistedWrites.push(snapshot.session.lastUpdatedAt ?? 'missing');
+      });
+
+    const directory = await mkdtemp(join(tmpdir(), 'codex-hud-socket-'));
+    const server = createHudSocketServer(join(directory, 'snapshot.json'), {
+      writeSnapshot
+    });
+    const connection = attachConnection(server);
+
+    connection.emit(
+      'data',
+      `${JSON.stringify({
+        type: 'tool.start',
+        toolName: 'functions.exec_command',
+        at: '2026-03-30T10:00:00.000Z',
+        sessionId: 'session-123'
+      })}\n`
+    );
+    connection.emit(
+      'data',
+      `${JSON.stringify({
+        type: 'warning',
+        message: 'Still going',
+        at: '2026-03-30T10:00:01.000Z',
+        sessionId: 'session-123'
+      })}\n`
+    );
+
+    failedWrite.resolve();
+
+    await vi.waitFor(() => {
+      expect(persistedWrites).toEqual(['2026-03-30T10:00:01.000Z']);
     });
   });
 });

@@ -36,4 +36,35 @@ describe('applyHudEvent', () => {
       })
     ).toEqual(initial);
   });
+
+  it('ignores semantically invalid timestamps safely', () => {
+    const running = applyHudEvent(createEmptySnapshot('session-123'), {
+      type: 'tool.start',
+      toolName: 'functions.exec_command',
+      at: '2026-03-30T10:00:00.000Z'
+    });
+
+    expect(
+      applyHudEvent(running, {
+        type: 'tool.finish',
+        toolName: 'functions.exec_command',
+        success: true,
+        at: 'not-a-timestamp'
+      })
+    ).toEqual(running);
+  });
+
+  it('ignores semantically invalid counters safely', () => {
+    const initial = createEmptySnapshot('session-123');
+
+    expect(
+      applyHudEvent(initial, {
+        type: 'plan.update',
+        at: '2026-03-30T10:00:00.000Z',
+        currentStep: 'bad counters',
+        completedSteps: 3,
+        totalSteps: 2
+      })
+    ).toEqual(initial);
+  });
 });

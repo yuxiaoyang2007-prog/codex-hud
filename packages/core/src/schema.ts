@@ -58,8 +58,16 @@ function isHudPhase(value: unknown): value is HudPhase {
   );
 }
 
+function isIsoTimestamp(value: unknown): value is string {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0;
+}
+
 export function isHudEvent(value: unknown): value is HudEvent {
-  if (!isRecord(value) || typeof value.type !== 'string' || typeof value.at !== 'string') {
+  if (!isRecord(value) || typeof value.type !== 'string' || !isIsoTimestamp(value.at)) {
     return false;
   }
 
@@ -78,11 +86,12 @@ export function isHudEvent(value: unknown): value is HudEvent {
     case 'plan.update':
       return (
         (value.currentStep === null || typeof value.currentStep === 'string') &&
-        typeof value.completedSteps === 'number' &&
-        typeof value.totalSteps === 'number'
+        isNonNegativeInteger(value.completedSteps) &&
+        isNonNegativeInteger(value.totalSteps) &&
+        value.completedSteps <= value.totalSteps
       );
     case 'subagent.update':
-      return typeof value.active === 'number' && typeof value.lastEvent === 'string';
+      return isNonNegativeInteger(value.active) && typeof value.lastEvent === 'string';
     case 'warning':
       return typeof value.message === 'string';
     default:

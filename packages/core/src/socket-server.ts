@@ -28,7 +28,6 @@ function parseHookEventLine(line: string): HookEvent | null {
 }
 
 export function createHudSocketServer(
-  socketPath: string,
   snapshotPath: string,
   options: CreateHudSocketServerOptions = {}
 ): Server {
@@ -56,23 +55,25 @@ export function createHudSocketServer(
           continue;
         }
 
-        pendingWrite = pendingWrite.then(async () => {
-          if (snapshot.session.id === 'pending-session' && event.sessionId) {
-            snapshot = {
-              ...snapshot,
-              session: {
-                ...snapshot.session,
-                id: event.sessionId
-              }
-            };
-          }
+        pendingWrite = pendingWrite
+          .catch(() => undefined)
+          .then(async () => {
+            if (snapshot.session.id === 'pending-session' && event.sessionId) {
+              snapshot = {
+                ...snapshot,
+                session: {
+                  ...snapshot.session,
+                  id: event.sessionId
+                }
+              };
+            }
 
-          snapshot = applyHudEvent(snapshot, event);
-          await persistSnapshot(snapshotPath, snapshot);
-        });
+            snapshot = applyHudEvent(snapshot, event);
+            await persistSnapshot(snapshotPath, snapshot);
+          });
       }
 
-      await pendingWrite;
+      await pendingWrite.catch(() => undefined);
     });
   });
 }
