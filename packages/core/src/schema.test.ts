@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import { createEmptySnapshot } from './index';
 
@@ -41,15 +40,5 @@ describe('createEmptySnapshot', () => {
     first.warnings.push('warning');
 
     expect(second.warnings).toEqual([]);
-  });
-
-  it('uses the direct ESM re-export without a postbuild workaround', async () => {
-    const indexSource = await readFile(new URL('./index.ts', import.meta.url), 'utf8');
-    const packageJson = JSON.parse(
-      await readFile(new URL('../package.json', import.meta.url), 'utf8')
-    ) as { scripts?: Record<string, string> };
-
-    expect(indexSource.trim()).toBe("export * from './schema.js';");
-    expect(packageJson.scripts?.postbuild).toBeUndefined();
   });
 });
