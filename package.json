@@ -6,7 +6,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces && npm run test:e2e",
+    "test:e2e": "vitest run tests/e2e"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
