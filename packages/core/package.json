@@ -6,7 +6,6 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "postbuild": "cp dist/schema.js dist/schema",
     "test": "vitest run"
   }
 }
