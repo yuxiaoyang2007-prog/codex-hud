@@ -1,0 +1,16 @@
+{
+  "name": "@codex-hud/terminal",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "codex-hud": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@codex-hud/core": "0.1.0",
+    "node-pty": "^1.0.0"
+  }
+}
