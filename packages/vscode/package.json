@@ -1,0 +1,26 @@
+{
+  "name": "@codex-hud/vscode",
+  "displayName": "Codex HUD",
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:codexHud.showDetails"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codexHud.showDetails",
+        "title": "Codex HUD: Show Details"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  }
+}
