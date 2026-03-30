@@ -1,5 +1,20 @@
 export type HudPhase = 'idle' | 'thinking' | 'tool-running' | 'waiting' | 'error';
 
+export type HudEvent =
+  | { type: 'session.start'; at: string; model?: string; reasoningEffort?: string }
+  | { type: 'phase.update'; at: string; phase: HudPhase }
+  | { type: 'tool.start'; at: string; toolName: string }
+  | { type: 'tool.finish'; at: string; toolName: string; success: boolean }
+  | {
+      type: 'plan.update';
+      at: string;
+      currentStep: string | null;
+      completedSteps: number;
+      totalSteps: number;
+    }
+  | { type: 'subagent.update'; at: string; active: number; lastEvent: string }
+  | { type: 'warning'; at: string; message: string };
+
 export interface HudSnapshot {
   session: {
     id: string;
