@@ -44,6 +44,52 @@ export interface HudSnapshot {
   warnings: string[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isHudPhase(value: unknown): value is HudPhase {
+  return (
+    value === 'idle' ||
+    value === 'thinking' ||
+    value === 'tool-running' ||
+    value === 'waiting' ||
+    value === 'error'
+  );
+}
+
+export function isHudEvent(value: unknown): value is HudEvent {
+  if (!isRecord(value) || typeof value.type !== 'string' || typeof value.at !== 'string') {
+    return false;
+  }
+
+  switch (value.type) {
+    case 'session.start':
+      return (
+        (value.model === undefined || typeof value.model === 'string') &&
+        (value.reasoningEffort === undefined || typeof value.reasoningEffort === 'string')
+      );
+    case 'phase.update':
+      return isHudPhase(value.phase);
+    case 'tool.start':
+      return typeof value.toolName === 'string';
+    case 'tool.finish':
+      return typeof value.toolName === 'string' && typeof value.success === 'boolean';
+    case 'plan.update':
+      return (
+        (value.currentStep === null || typeof value.currentStep === 'string') &&
+        typeof value.completedSteps === 'number' &&
+        typeof value.totalSteps === 'number'
+      );
+    case 'subagent.update':
+      return typeof value.active === 'number' && typeof value.lastEvent === 'string';
+    case 'warning':
+      return typeof value.message === 'string';
+    default:
+      return false;
+  }
+}
+
 export function createEmptySnapshot(sessionId: string): HudSnapshot {
   return {
     session: {

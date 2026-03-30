@@ -1,14 +1,40 @@
 import net, { type Server, type Socket } from 'node:net';
 import { applyHudEvent } from './reducer.js';
-import { createEmptySnapshot, type HudEvent } from './schema.js';
-import { writeSnapshot } from './state-store.js';
+import { createEmptySnapshot, isHudEvent, type HudEvent, type HudSnapshot } from './schema.js';
+import { writeSnapshot as writeSnapshotToDisk } from './state-store.js';
 
 type HookEvent = HudEvent & {
   sessionId?: string;
 };
 
-export function createHudSocketServer(socketPath: string, snapshotPath: string): Server {
+interface CreateHudSocketServerOptions {
+  writeSnapshot?: (snapshotPath: string, snapshot: HudSnapshot) => Promise<void>;
+}
+
+function isHookEvent(value: unknown): value is HookEvent {
+  return (
+    isHudEvent(value) &&
+    (!('sessionId' in value) || value.sessionId === undefined || typeof value.sessionId === 'string')
+  );
+}
+
+function parseHookEventLine(line: string): HookEvent | null {
+  try {
+    const parsed = JSON.parse(line) as unknown;
+    return isHookEvent(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function createHudSocketServer(
+  socketPath: string,
+  snapshotPath: string,
+  options: CreateHudSocketServerOptions = {}
+): Server {
   let snapshot = createEmptySnapshot('pending-session');
+  let pendingWrite = Promise.resolve();
+  const persistSnapshot = options.writeSnapshot ?? writeSnapshotToDisk;
 
   return net.createServer((connection: Socket) => {
     let buffer = '';
@@ -25,19 +51,28 @@ export function createHudSocketServer(socketPath: string, snapshotPath: string):
           continue;
         }
 
-        const event = JSON.parse(line) as HookEvent;
-        if (snapshot.session.id === 'pending-session' && event.sessionId) {
-          snapshot = {
-            ...snapshot,
-            session: {
-              ...snapshot.session,
-              id: event.sessionId
-            }
-          };
+        const event = parseHookEventLine(line);
+        if (event == null) {
+          continue;
         }
-        snapshot = applyHudEvent(snapshot, event);
-        await writeSnapshot(snapshotPath, snapshot);
+
+        pendingWrite = pendingWrite.then(async () => {
+          if (snapshot.session.id === 'pending-session' && event.sessionId) {
+            snapshot = {
+              ...snapshot,
+              session: {
+                ...snapshot.session,
+                id: event.sessionId
+              }
+            };
+          }
+
+          snapshot = applyHudEvent(snapshot, event);
+          await persistSnapshot(snapshotPath, snapshot);
+        });
       }
+
+      await pendingWrite;
     });
   });
 }

@@ -25,4 +25,15 @@ describe('applyHudEvent', () => {
     expect(finished.tool.activeName).toBeNull();
     expect(finished.tool.elapsedMs).toBe(2000);
   });
+
+  it('ignores unknown runtime events safely', () => {
+    const initial = createEmptySnapshot('session-123');
+
+    expect(
+      applyHudEvent(initial, {
+        type: 'tool.explode',
+        at: '2026-03-30T10:00:00.000Z'
+      })
+    ).toEqual(initial);
+  });
 });

@@ -1,6 +1,10 @@
-import type { HudEvent, HudSnapshot } from './schema.js';
+import { isHudEvent, type HudSnapshot } from './schema.js';
 
-export function applyHudEvent(snapshot: HudSnapshot, event: HudEvent): HudSnapshot {
+export function applyHudEvent(snapshot: HudSnapshot, event: unknown): HudSnapshot {
+  if (!isHudEvent(event)) {
+    return snapshot;
+  }
+
   const next: HudSnapshot = {
     ...snapshot,
     session: {
@@ -61,5 +65,7 @@ export function applyHudEvent(snapshot: HudSnapshot, event: HudEvent): HudSnapsh
     case 'warning':
       next.warnings = [...snapshot.warnings, event.message].slice(-5);
       return next;
+    default:
+      return snapshot;
   }
 }
