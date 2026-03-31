@@ -1,0 +1,26 @@
+{
+  "name": "codex-hud",
+  "private": true,
+  "description": "A terminal-first HUD overlay for OpenAI Codex CLI — live context, usage, tool tracking, and more.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuxiaoyang2007-prog/codex-hud.git"
+  },
+  "license": "MIT",
+  "author": "Xiaoyang Yu <yuxiaoyang2007@gmail.com>",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "postinstall": "node -e \"const{chmodSync,accessSync,constants}=require('fs');const{join}=require('path');const h=join('node_modules','node-pty','prebuilds',process.platform+'-'+process.arch,'spawn-helper');try{accessSync(h,constants.R_OK);try{accessSync(h,constants.X_OK)}catch{chmodSync(h,0o755);console.log('Fixed node-pty spawn-helper permissions')}}catch{}\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces && npm run test:e2e",
+    "test:e2e": "vitest run tests/e2e"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.110.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

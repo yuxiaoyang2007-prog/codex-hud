@@ -1,0 +1,2 @@
+{"payload":{"type":"function_call","name":"update_plan","arguments":{"plan":[{"step":"Explore project context","status":"completed"},{"step":"Present recommended design","status":"in_progress"}]}}}
+{"payload":{"type":"function_call","name":"spawn_agent","arguments":{"agent_type":"worker"}}}

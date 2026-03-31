@@ -1,0 +1,33 @@
+{
+  "name": "@codex-hud/terminal",
+  "version": "0.1.0",
+  "description": "Terminal CLI wrapper that renders a live two-line HUD footer for OpenAI Codex.",
+  "type": "module",
+  "bin": {
+    "codex-hud": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuxiaoyang2007-prog/codex-hud.git",
+    "directory": "packages/terminal"
+  },
+  "license": "MIT",
+  "author": "Xiaoyang Yu <yuxiaoyang2007@gmail.com>",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@codex-hud/core": "0.1.0",
+    "node-pty": "^1.0.0"
+  }
+}

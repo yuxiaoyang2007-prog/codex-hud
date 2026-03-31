@@ -1,0 +1,21 @@
+{
+  "name": "codex-hud",
+  "version": "0.1.0",
+  "description": "Real-time terminal HUD for Codex sessions",
+  "author": {
+    "name": "OpenAI Codex user"
+  },
+  "hooks": "./hooks.json",
+  "interface": {
+    "displayName": "Codex HUD",
+    "shortDescription": "Terminal and VS Code HUD for Codex sessions",
+    "longDescription": "Adds a real-time status HUD for local Codex terminal sessions and companion VS Code surfaces.",
+    "developerName": "Local",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ]
+  }
+}

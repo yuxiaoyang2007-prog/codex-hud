@@ -1,0 +1,10 @@
+.DS_Store
+.worktrees/
+node_modules/
+dist/
+coverage/
+.vscode-test/
+*.log
+tmp/
+.vitest
+.vscode/
