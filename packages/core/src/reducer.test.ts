@@ -26,6 +26,17 @@ describe('applyHudEvent', () => {
     expect(finished.tool.elapsedMs).toBe(2000);
   });
 
+  it('applies context.update events', () => {
+    const initial = createEmptySnapshot('session-123');
+    const updated = applyHudEvent(initial, {
+      type: 'context.update',
+      percentLeft: 89,
+      at: '2026-03-30T10:00:00.000Z'
+    });
+
+    expect(updated.context.percentLeft).toBe(89);
+  });
+
   it('ignores unknown runtime events safely', () => {
     const initial = createEmptySnapshot('session-123');
 

@@ -5,6 +5,7 @@ export type HudEvent =
   | { type: 'phase.update'; at: string; phase: HudPhase }
   | { type: 'tool.start'; at: string; toolName: string }
   | { type: 'tool.finish'; at: string; toolName: string; success: boolean }
+  | { type: 'context.update'; at: string; percentLeft: number }
   | {
       type: 'plan.update';
       at: string;
@@ -31,11 +32,20 @@ export interface HudSnapshot {
     activeName: string | null;
     startedAt: string | null;
     elapsedMs: number;
+    counts: Record<string, number>;
   };
   plan: {
     currentStep: string | null;
     completedSteps: number;
     totalSteps: number;
+  };
+  context: {
+    percentLeft: number | null;
+  };
+  usage: {
+    fiveHour: { usedPercent: number; resetsAt: number | null } | null;
+    weekly: { usedPercent: number; resetsAt: number | null } | null;
+    planType: string | null;
   };
   subagents: {
     active: number;
@@ -90,6 +100,13 @@ export function isHudEvent(value: unknown): value is HudEvent {
       return typeof value.toolName === 'string';
     case 'tool.finish':
       return typeof value.toolName === 'string' && typeof value.success === 'boolean';
+    case 'context.update':
+      return (
+        typeof value.percentLeft === 'number' &&
+        Number.isInteger(value.percentLeft) &&
+        value.percentLeft >= 0 &&
+        value.percentLeft <= 100
+      );
     case 'plan.update':
       return (
         (value.currentStep === null || typeof value.currentStep === 'string') &&
@@ -122,12 +139,21 @@ export function createEmptySnapshot(sessionId: string): HudSnapshot {
     tool: {
       activeName: null,
       startedAt: null,
-      elapsedMs: 0
+      elapsedMs: 0,
+      counts: {}
     },
     plan: {
       currentStep: null,
       completedSteps: 0,
       totalSteps: 0
+    },
+    context: {
+      percentLeft: null
+    },
+    usage: {
+      fiveHour: null,
+      weekly: null,
+      planType: null
     },
     subagents: {
       active: 0,

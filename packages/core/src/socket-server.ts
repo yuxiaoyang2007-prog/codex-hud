@@ -8,6 +8,8 @@ type HookEvent = HudEvent & {
 };
 
 interface CreateHudSocketServerOptions {
+  initialSnapshot?: HudSnapshot;
+  onSnapshot?: (snapshot: HudSnapshot) => void;
   writeSnapshot?: (snapshotPath: string, snapshot: HudSnapshot) => Promise<void>;
 }
 
@@ -31,8 +33,9 @@ export function createHudSocketServer(
   snapshotPath: string,
   options: CreateHudSocketServerOptions = {}
 ): Server {
-  let snapshot = createEmptySnapshot('pending-session');
+  let snapshot = options.initialSnapshot ?? createEmptySnapshot('pending-session');
   let pendingWrite = Promise.resolve();
+  const notifySnapshot = options.onSnapshot;
   const persistSnapshot = options.writeSnapshot ?? writeSnapshotToDisk;
 
   return net.createServer((connection: Socket) => {
@@ -69,6 +72,11 @@ export function createHudSocketServer(
             }
 
             snapshot = applyHudEvent(snapshot, event);
+            try {
+              notifySnapshot?.(snapshot);
+            } catch {
+              // Keep socket processing resilient even if a UI subscriber fails.
+            }
             await persistSnapshot(snapshotPath, snapshot);
           });
       }

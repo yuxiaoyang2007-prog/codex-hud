@@ -1,11 +1,30 @@
 {
-  "name": "@codex-hud/vscode",
+  "name": "codex-hud-vscode",
   "displayName": "Codex HUD",
+  "publisher": "yuxiaoyang2007",
   "version": "0.1.0",
+  "description": "A lightweight VS Code status bar companion that mirrors Codex session state — model, context, usage, tools, and plan progress.",
   "type": "module",
   "engines": {
     "vscode": "^1.100.0"
   },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "codex",
+    "openai",
+    "hud",
+    "status bar",
+    "terminal"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuxiaoyang2007-prog/codex-hud.git",
+    "directory": "packages/vscode"
+  },
+  "license": "MIT",
+  "author": "Xiaoyang Yu <yuxiaoyang2007@gmail.com>",
   "activationEvents": [
     "onStartupFinished",
     "onCommand:codexHud.showDetails"
@@ -17,10 +36,25 @@
         "command": "codexHud.showDetails",
         "title": "Codex HUD: Show Details"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Codex HUD",
+      "properties": {
+        "codexHud.snapshotPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Absolute path to the Codex HUD snapshot JSON file written by the terminal wrapper."
+        }
+      }
+    }
   },
+  "extensionKind": [
+    "workspace"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepare:install": "npm run build",
+    "package": "vsce package --no-dependencies"
   }
 }

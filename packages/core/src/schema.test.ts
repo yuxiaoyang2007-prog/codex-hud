@@ -19,12 +19,21 @@ describe('createEmptySnapshot', () => {
       tool: {
         activeName: null,
         startedAt: null,
-        elapsedMs: 0
+        elapsedMs: 0,
+        counts: {}
       },
       plan: {
         currentStep: null,
         completedSteps: 0,
         totalSteps: 0
+      },
+      context: {
+        percentLeft: null
+      },
+      usage: {
+        fiveHour: null,
+        weekly: null,
+        planType: null
       },
       subagents: {
         active: 0,
