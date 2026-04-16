@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { launchCodexWithHud, type HudChildProcess, type HudExitStatus } from './pty-launcher.js';
 import { startRateLimitPoller } from './rate-limit-poller.js';
 import { Screen } from './screen.js';
+import { startSessionWatcher } from './session-watcher.js';
 
 function listen(server: Server, socketPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -445,8 +446,19 @@ export async function main(
         screen.render(runtime.snapshot);
       })
     : () => undefined;
-  let pendingChunkProcessing = Promise.resolve();
+  let pendingSnapshotProcessing = Promise.resolve();
   const ptyObserver = createPtyObserver();
+  const stopSessionWatcher = startSessionWatcher({
+    explicitPath: env.CODEX_HUD_SESSION_FILE,
+    debug: Boolean(env.CODEX_HUD_DEBUG),
+    onEvents: (events) => {
+      pendingSnapshotProcessing = pendingSnapshotProcessing.then(async () => {
+        for (const event of events) {
+          await applySnapshotEvent(runtime, event);
+        }
+      });
+    }
+  });
 
   // Regex that detects a CSI scroll-region reset such as \e[r or \e[1;24r.
   // When the child sends one of these, the reserved footer rows become part
@@ -467,7 +479,7 @@ export async function main(
     }
 
     if (directSnapshotState) {
-      pendingChunkProcessing = pendingChunkProcessing.then(() =>
+      pendingSnapshotProcessing = pendingSnapshotProcessing.then(() =>
         handleDirectChunk(directSnapshotState, runtime, chunk)
       );
     }
@@ -480,7 +492,7 @@ export async function main(
 
   try {
     exitStatus = await waitForExit(child);
-    await pendingChunkProcessing;
+    await pendingSnapshotProcessing;
 
     if (directSnapshotState) {
       await finishDirectSnapshot(directSnapshotState, runtime, exitStatus.exitCode === 0);
@@ -492,6 +504,7 @@ export async function main(
       });
     }
   } finally {
+    stopSessionWatcher();
     releaseInput();
     releaseResize();
     releaseRateLimitPoller();
