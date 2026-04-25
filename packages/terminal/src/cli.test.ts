@@ -3,7 +3,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { isCliEntrypoint, normalizeCodexArgs, shouldUseStickyFooter } from './cli';
+import {
+  createDefaultSnapshotPath,
+  isCliEntrypoint,
+  normalizeCodexArgs,
+  shouldUseStickyFooter
+} from './cli';
 
 const temporaryDirectories: string[] = [];
 
@@ -46,6 +51,12 @@ describe('shouldUseStickyFooter', () => {
   it('keeps the sticky footer for interactive sessions', () => {
     expect(shouldUseStickyFooter([])).toBe(true);
     expect(shouldUseStickyFooter(['Write a changelog'])).toBe(true);
+  });
+});
+
+describe('createDefaultSnapshotPath', () => {
+  it('uses a stable path that the VS Code companion can follow', () => {
+    expect(createDefaultSnapshotPath()).toBe('/tmp/codex-hud/current.json');
   });
 });
 

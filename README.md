@@ -85,7 +85,7 @@ The terminal wrapper launches Codex inside a PTY, reserves the bottom two rows v
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `CODEX_HUD_ENABLED` | `1` | Set to `0` to bypass the HUD wrapper |
-| `CODEX_HUD_STATE_FILE` | `/tmp/codex-hud/session-<pid>.json` | Snapshot file path |
+| `CODEX_HUD_STATE_FILE` | `/tmp/codex-hud/current.json` | Snapshot file path |
 | `CODEX_HUD_COMMAND` | `codex` | Override the Codex binary path |
 | `CODEX_HUD_NO_PTY` | unset | Force shared-stdio fallback (no PTY) |
 | `CODEX_HUD_DEBUG` | unset | Enable debug logging to stderr |

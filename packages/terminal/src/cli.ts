@@ -44,8 +44,8 @@ function createSocketPath(snapshotPath: string): string {
   return join(snapshotDirectory, `${snapshotName}.${process.pid}.sock`);
 }
 
-function createDefaultSnapshotPath(): string {
-  return join('/tmp', 'codex-hud', `session-${process.pid}.json`);
+export function createDefaultSnapshotPath(): string {
+  return join('/tmp', 'codex-hud', 'current.json');
 }
 
 function readCodexConfig(): { model?: string; reasoningEffort?: string } {

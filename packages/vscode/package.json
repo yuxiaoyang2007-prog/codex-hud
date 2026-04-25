@@ -42,7 +42,7 @@
       "properties": {
         "codexHud.snapshotPath": {
           "type": "string",
-          "default": "",
+          "default": "/tmp/codex-hud/current.json",
           "markdownDescription": "Absolute path to the Codex HUD snapshot JSON file written by the terminal wrapper."
         }
       }
