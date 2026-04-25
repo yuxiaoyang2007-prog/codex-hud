@@ -19,6 +19,9 @@ interface SessionRecord {
       total_token_usage?: {
         total_tokens?: unknown;
       };
+      last_token_usage?: {
+        total_tokens?: unknown;
+      };
       model_context_window?: unknown;
     } | null;
     model_context_window?: unknown;
@@ -164,7 +167,8 @@ export class CodexSessionParser {
 
     if (payloadType === 'token_count') {
       const info = record.payload?.info;
-      const totalTokens = info?.total_token_usage?.total_tokens;
+      const contextTokens =
+        info?.last_token_usage?.total_tokens ?? info?.total_token_usage?.total_tokens;
       const contextWindow = info?.model_context_window;
 
       if (typeof contextWindow === 'number' && Number.isFinite(contextWindow) && contextWindow > 0) {
@@ -173,15 +177,15 @@ export class CodexSessionParser {
 
       if (
         this.contextWindow == null ||
-        typeof totalTokens !== 'number' ||
-        !Number.isFinite(totalTokens) ||
-        totalTokens < 0
+        typeof contextTokens !== 'number' ||
+        !Number.isFinite(contextTokens) ||
+        contextTokens < 0
       ) {
         return;
       }
 
       const percentLeft = clampPercent(
-        Math.round((1 - totalTokens / this.contextWindow) * 100)
+        Math.round((1 - contextTokens / this.contextWindow) * 100)
       );
       if (percentLeft === this.lastEmittedPercent) {
         return;

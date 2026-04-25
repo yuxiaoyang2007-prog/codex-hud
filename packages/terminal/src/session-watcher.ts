@@ -5,7 +5,6 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseCodexSessionLines, type HudEvent } from '@codex-hud/core';
 
-const DEFAULT_ATTACH_TIMEOUT_MS = 15_000;
 const DEFAULT_POLL_INTERVAL_MS = 200;
 
 interface SessionWatcherOptions {
@@ -84,7 +83,6 @@ async function findLatestSessionFile(
 export function startSessionWatcher(opts: SessionWatcherOptions): () => void {
   const codexHome = opts.codexHome ?? join(homedir(), '.codex');
   const startedAtMs = Date.now();
-  const attachDeadlineMs = startedAtMs + DEFAULT_ATTACH_TIMEOUT_MS;
   let watcher: FSWatcher | null = null;
   let pollTimer: NodeJS.Timeout | null = null;
   let attachedPath: string | null = null;
@@ -186,14 +184,6 @@ export function startSessionWatcher(opts: SessionWatcherOptions): () => void {
           pollTimer = null;
         }
         return;
-      }
-
-      if (Date.now() >= attachDeadlineMs) {
-        debugLog(opts.debug, 'timed out after 15s');
-        if (pollTimer) {
-          clearInterval(pollTimer);
-          pollTimer = null;
-        }
       }
     } finally {
       pollingInFlight = false;

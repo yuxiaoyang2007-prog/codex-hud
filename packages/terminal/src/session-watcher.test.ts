@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { appendFile, utimes } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { HudEvent } from '@codex-hud/core';
 import { startSessionWatcher } from './session-watcher';
 
@@ -37,6 +37,7 @@ function waitFor(check: () => boolean, timeoutMs = 3000): Promise<void> {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   temporaryDirectories.splice(0).forEach((directory) => {
     rmSync(directory, { recursive: true, force: true });
   });
@@ -81,6 +82,44 @@ describe('startSessionWatcher', () => {
             event.at === '2026-04-15T10:59:04.755Z'
         )
       , 5_000);
+    } finally {
+      stop();
+    }
+  });
+
+  it('keeps polling for rollout files that appear after the old attach timeout window', async () => {
+    vi.useFakeTimers();
+
+    const codexHome = trackTempDirectory();
+    const sessionPath = join(codexHome, 'delayed-explicit-session.jsonl');
+
+    const receivedEvents: HudEvent[] = [];
+    const stop = startSessionWatcher({
+      explicitPath: sessionPath,
+      onEvents: (events) => {
+        receivedEvents.push(...events);
+      }
+    });
+
+    try {
+      await vi.advanceTimersByTimeAsync(16_000);
+
+      writeFileSync(
+        sessionPath,
+        '{"timestamp":"2026-04-15T11:05:04.755Z","type":"event_msg","payload":{"type":"task_started","model_context_window":258400}}\n'
+      );
+
+      await vi.advanceTimersByTimeAsync(1_000);
+      vi.useRealTimers();
+
+      await waitFor(() =>
+        receivedEvents.some(
+          (event) =>
+            event.type === 'phase.update' &&
+            event.phase === 'thinking' &&
+            event.at === '2026-04-15T11:05:04.755Z'
+        )
+      , 500);
     } finally {
       stop();
     }

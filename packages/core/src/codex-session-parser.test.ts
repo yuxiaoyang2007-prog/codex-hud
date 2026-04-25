@@ -88,6 +88,19 @@ describe('parseCodexSessionLines', () => {
     });
   });
 
+  it('uses the latest context-window usage instead of cumulative session tokens', () => {
+    const events = parseCodexSessionLines([
+      '{"timestamp":"2026-04-25T01:09:54.065Z","type":"event_msg","payload":{"type":"task_started","model_context_window":258400}}',
+      '{"timestamp":"2026-04-25T01:10:52.736Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":2196098,"cached_input_tokens":1938176,"output_tokens":8031,"reasoning_output_tokens":2193,"total_tokens":2204129},"last_token_usage":{"input_tokens":112185,"cached_input_tokens":112000,"output_tokens":37,"reasoning_output_tokens":0,"total_tokens":112222},"model_context_window":258400}}}'
+    ]);
+
+    expect(events).toContainEqual({
+      type: 'context.update',
+      at: '2026-04-25T01:10:52.736Z',
+      percentLeft: 57
+    });
+  });
+
   it('drops unmatched function_call_output events without throwing', () => {
     const parser = new CodexSessionParser();
 
