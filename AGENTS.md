@@ -19,6 +19,7 @@ All 50 tests must pass before committing. Build order: core → terminal → vsc
 - Use vitest for testing (`describe`, `it`, `expect`, `vi`)
 - No default exports; use named exports
 - Imports use `.js` extension for ESM compatibility (e.g., `import { Screen } from './screen.js'`)
+- Do not end routine responses with generic "I can also do X next" suggestions unless they add clear value.
 
 ## Package Boundaries
 
